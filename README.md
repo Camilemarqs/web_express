@@ -1,29 +1,5 @@
 # API de Alunos - Express
 
-Esta é uma aplicação Express que implementa o serviço de listar alunos, conforme o enunciado da atividade.
-
-## Funcionalidades
-
-- ✅ **Listar alunos** (GET /alunos)
-- ✅ **Entidade Aluno:**
-  - nome
-  - curso
-  - ira
-- ✅ **Pelo menos 3 alunos cadastrados**
-
-## Estrutura do Projeto
-
-```
-atividade_express/
-├── server.js              # Servidor principal
-├── package.json           # Dependências do projeto
-├── README.md             # Documentação
-├── routes/
-│   └── alunoRoutes.js    # Rotas da API
-└── controllers/
-    └── alunoController.js # Lógica de negócio
-```
-
 ## Instalação
 
 1. Navegue até a pasta do projeto:
