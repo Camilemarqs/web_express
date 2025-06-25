@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CRUD de Alunos</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 500px;
+      }
+      th,
+      td {
+        border: 1px solid #aaa;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background: #f0f0f0;
+      }
+      #media-ira {
+        margin-top: 20px;
+        font-weight: bold;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      input[type="text"],
+      input[type="number"] {
+        padding: 5px;
+        margin-right: 10px;
+      }
+      button {
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CRUD de Alunos</h1>
+    <form id="form-aluno">
+      <input type="hidden" id="aluno-id" />
+      <input type="text" id="nome" placeholder="Nome" required />
+      <input type="text" id="curso" placeholder="Curso" required />
+      <input
+        type="number"
+        id="ira"
+        placeholder="IRA"
+        step="0.01"
+        min="0"
+        max="10"
+        required
+      />
+      <button type="submit">Cadastrar</button>
+      <button type="button" id="cancelar-edicao" style="display: none">
+        Cancelar
+      </button>
+    </form>
+    <table id="tabela-alunos">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Curso</th>
+          <th>IRA</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="media-ira"></p>
+    <script>
+      const api = "http://localhost:3004/alunos";
+      const form = document.getElementById("form-aluno");
+      const nomeInput = document.getElementById("nome");
+      const cursoInput = document.getElementById("curso");
+      const iraInput = document.getElementById("ira");
+      const idInput = document.getElementById("aluno-id");
+      const cancelarBtn = document.getElementById("cancelar-edicao");
+
+      function carregarAlunos() {
+        fetch(api)
+          .then((res) => res.json())
+          .then((alunos) => {
+            const tbody = document.querySelector("#tabela-alunos tbody");
+            tbody.innerHTML = "";
+            let somaIra = 0;
+            alunos.forEach((aluno) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+              <td>${aluno.nome}</td>
+              <td>${aluno.curso}</td>
+              <td>${aluno.ira}</td>
+              <td>
+                <button onclick="editarAluno(${aluno.id}, '${aluno.nome}', '${aluno.curso}', ${aluno.ira})">Editar</button>
+                <button onclick="excluirAluno(${aluno.id})">Excluir</button>
+              </td>
+            `;
+              tbody.appendChild(tr);
+              somaIra += Number(aluno.ira);
+            });
+            const media = alunos.length
+              ? (somaIra / alunos.length).toFixed(2)
+              : "0.00";
+            document.getElementById("media-ira").textContent =
+              "Média dos IRAs: " + media;
+          });
+      }
+
+      form.onsubmit = function (e) {
+        e.preventDefault();
+        const nome = nomeInput.value.trim();
+        const curso = cursoInput.value.trim();
+        const ira = iraInput.value;
+        const id = idInput.value;
+        if (!nome || !curso || ira === "") return;
+        const aluno = { nome, curso, ira };
+        if (id) {
+          // Editar
+          fetch(`${api}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(aluno),
+          }).then(() => {
+            form.reset();
+            idInput.value = "";
+            form.querySelector('button[type="submit"]').textContent =
+              "Cadastrar";
+            cancelarBtn.style.display = "none";
+            carregarAlunos();
+          });
+        } else {
+          // Cadastrar
+          fetch(api, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(aluno),
+          }).then(() => {
+            form.reset();
+            carregarAlunos();
+          });
+        }
+      };
+
+      window.editarAluno = function (id, nome, curso, ira) {
+        idInput.value = id;
+        nomeInput.value = nome;
+        cursoInput.value = curso;
+        iraInput.value = ira;
+        form.querySelector('button[type="submit"]').textContent = "Salvar";
+        cancelarBtn.style.display = "inline";
+      };
+
+      window.excluirAluno = function (id) {
+        if (confirm("Tem certeza que deseja excluir este aluno?")) {
+          fetch(`${api}/${id}`, { method: "DELETE" }).then(() =>
+            carregarAlunos()
+          );
+        }
+      };
+
+      cancelarBtn.onclick = function () {
+        form.reset();
+        idInput.value = "";
+        form.querySelector('button[type="submit"]').textContent = "Cadastrar";
+        cancelarBtn.style.display = "none";
+      };
+
+      carregarAlunos();
+    </script>
+  </body>
+</html>
